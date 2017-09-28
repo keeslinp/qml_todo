@@ -5,9 +5,9 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
-class Simple;
+class Todo;
 
-class Simple : public QObject
+class Todo : public QAbstractItemModel
 {
     Q_OBJECT
 public:
@@ -15,14 +15,34 @@ public:
 private:
     Private * m_d;
     bool m_ownsPrivate;
-    Q_PROPERTY(QString message READ message WRITE setMessage NOTIFY messageChanged FINAL)
-    explicit Simple(bool owned, QObject *parent);
+    explicit Todo(bool owned, QObject *parent);
 public:
-    explicit Simple(QObject *parent = nullptr);
-    ~Simple();
-    QString message() const;
-    void setMessage(const QString& v);
+    explicit Todo(QObject *parent = nullptr);
+    ~Todo();
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex &index) const override;
+    bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    bool canFetchMore(const QModelIndex &parent) const override;
+    void fetchMore(const QModelIndex &parent) override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
+    QHash<int, QByteArray> roleNames() const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    Q_INVOKABLE QVariant title(int row) const;
+    Q_INVOKABLE bool setTitle(int row, const QVariant& value);
+
 signals:
-    void messageChanged();
+    // new data is ready to be made available to the model with fetchMore()
+    void newDataReady(const QModelIndex &parent) const;
+private:
+    QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
+    void initHeaderData();
+signals:
 };
 #endif // BINDINGS_H

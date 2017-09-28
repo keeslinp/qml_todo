@@ -1,26 +1,35 @@
 use interface::*;
 
-pub struct Simple {
-    emit: SimpleEmitter,
-    message: String,
+#[derive(Default, Clone)]
+pub struct TodoItem {
+    title: String,
+}
+pub struct Todo {
+    emit: TodoEmitter,
+    model: TodoList,
+    list: Vec<TodoItem>,
 }
 
-impl SimpleTrait for Simple {
-    fn new(emit: SimpleEmitter) -> Simple {
-        Simple {
+impl TodoTrait for Todo {
+    fn new(emit: TodoEmitter, model: TodoList) -> Todo {
+        Todo {
             emit: emit,
-            message: String::new(),
+            model: model,
+            list: vec![TodoItem::default(); 10],
         }
     }
-    fn emit(&self) -> &SimpleEmitter {
+    fn emit(&self) -> &TodoEmitter {
         &self.emit
     }
-    fn message(&self) -> &str {
-        &self.message
+    fn row_count(&self) -> usize {
+        self.list.len()
     }
-    fn set_message(&mut self, value: String) {
-        self.message = value;
-        self.emit.message_changed();
+    fn title(&self, item: usize) -> &str {
+        &self.list[item].title
+    }
+    fn set_title(&mut self, item: usize, v: String) -> bool {
+        self.list[item].title = v;
+        true
     }
 }
 

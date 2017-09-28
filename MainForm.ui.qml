@@ -3,10 +3,9 @@ import RustCode 1.0
 
 Rectangle {
     property alias mouseArea: mouseArea
-    property alias textEdit: textEdit
     property alias rust: rust
 
-    Simple {
+    Todo {
         id: rust
     }
 
@@ -17,19 +16,28 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
     }
-
-    TextEdit {
-        id: textEdit
-        text: rust.message
-        verticalAlignment: Text.AlignVCenter
-        anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 20
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: -10
-            color: "transparent"
-            border.width: 1
+    ListView {
+        id: view
+        anchors.fill: parent
+        model: Todo {}
+        delegate: Text {
+            // use the defined model role "display"
+            text: 'tacos'
         }
     }
+
+    // TextEdit {
+        // id: textEdit
+        // text: rust.message
+        // verticalAlignment: Text.AlignVCenter
+        // anchors.top: parent.top
+        // anchors.horizontalCenter: parent.horizontalCenter
+        // anchors.topMargin: 20
+        // Rectangle {
+            // anchors.fill: parent
+            // anchors.margins: -10
+            // color: "transparent"
+            // border.width: 1
+        // }
+    // }
 }

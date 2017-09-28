@@ -6,14 +6,15 @@
         "implementationModule": "implementation"
     },
     "objects": {
-        "Simple": {
-            "type": "Object",
-            "properties": {
-                "message": {
+        "Todo": {
+            "type": "List",
+            "itemProperties": {
+                "title": {
                     "type": "QString",
-                    "write": true
+                    "write": true,
+                    "roles": [ [ "display", "edit" ] ]
                 }
-	    }
+            }
         }
     }
 }

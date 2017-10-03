@@ -86,17 +86,17 @@ pub struct QModelIndex {
     internal_id: usize,
 }
 
-pub struct TodoQObject {}
+pub struct TasksQObject {}
 
 #[derive(Clone)]
-pub struct TodoEmitter {
-    qobject: Arc<Mutex<*const TodoQObject>>,
-    new_data_ready: fn(*const TodoQObject),
+pub struct TasksEmitter {
+    qobject: Arc<Mutex<*const TasksQObject>>,
+    new_data_ready: fn(*const TasksQObject),
 }
 
-unsafe impl Send for TodoEmitter {}
+unsafe impl Send for TasksEmitter {}
 
-impl TodoEmitter {
+impl TasksEmitter {
     fn clear(&self) {
         *self.qobject.lock().unwrap() = null();
     }
@@ -108,18 +108,18 @@ impl TodoEmitter {
     }
 }
 
-pub struct TodoList {
-    qobject: *const TodoQObject,
-    data_changed: fn(*const TodoQObject, usize, usize),
-    begin_reset_model: fn(*const TodoQObject),
-    end_reset_model: fn(*const TodoQObject),
-    begin_insert_rows: fn(*const TodoQObject, usize, usize),
-    end_insert_rows: fn(*const TodoQObject),
-    begin_remove_rows: fn(*const TodoQObject, usize, usize),
-    end_remove_rows: fn(*const TodoQObject),
+pub struct TasksList {
+    qobject: *const TasksQObject,
+    data_changed: fn(*const TasksQObject, usize, usize),
+    begin_reset_model: fn(*const TasksQObject),
+    end_reset_model: fn(*const TasksQObject),
+    begin_insert_rows: fn(*const TasksQObject, usize, usize),
+    end_insert_rows: fn(*const TasksQObject),
+    begin_remove_rows: fn(*const TasksQObject, usize, usize),
+    end_remove_rows: fn(*const TasksQObject),
 }
 
-impl TodoList {
+impl TasksList {
     pub fn data_changed(&self, first: usize, last: usize) {
         (self.data_changed)(self.qobject, first, last);
     }
@@ -143,46 +143,185 @@ impl TodoList {
     }
 }
 
-pub trait TodoTrait {
-    fn new(emit: TodoEmitter, model: TodoList) -> Self;
-    fn emit(&self) -> &TodoEmitter;
+pub trait TasksTrait {
+    fn new(emit: TasksEmitter, model: TasksList) -> Self;
+    fn emit(&self) -> &TasksEmitter;
     fn row_count(&self) -> usize;
+    fn insert_rows(&mut self, row: usize, count: usize) -> bool { false }
+    fn remove_rows(&mut self, row: usize, count: usize) -> bool { false }
     fn can_fetch_more(&self) -> bool {
         false
     }
     fn fetch_more(&mut self) {}
     fn sort(&mut self, u8, SortOrder) {}
+    fn completed(&self, item: usize) -> bool;
+    fn set_completed(&mut self, item: usize, bool) -> bool;
     fn title(&self, item: usize) -> &str;
     fn set_title(&mut self, item: usize, String) -> bool;
 }
 
 #[no_mangle]
+pub extern "C" fn tasks_new(
+    tasks: *mut TasksQObject,
+    tasks_new_data_ready: fn(*const TasksQObject),
+    tasks_data_changed: fn(*const TasksQObject, usize, usize),
+    tasks_begin_reset_model: fn(*const TasksQObject),
+    tasks_end_reset_model: fn(*const TasksQObject),
+    tasks_begin_insert_rows: fn(*const TasksQObject, usize, usize),
+    tasks_end_insert_rows: fn(*const TasksQObject),
+    tasks_begin_remove_rows: fn(*const TasksQObject, usize, usize),
+    tasks_end_remove_rows: fn(*const TasksQObject),
+) -> *mut Tasks {
+    let tasks_emit = TasksEmitter {
+        qobject: Arc::new(Mutex::new(tasks)),
+        new_data_ready: tasks_new_data_ready,
+    };
+    let model = TasksList {
+        qobject: tasks,
+        data_changed: tasks_data_changed,
+        begin_reset_model: tasks_begin_reset_model,
+        end_reset_model: tasks_end_reset_model,
+        begin_insert_rows: tasks_begin_insert_rows,
+        end_insert_rows: tasks_end_insert_rows,
+        begin_remove_rows: tasks_begin_remove_rows,
+        end_remove_rows: tasks_end_remove_rows,
+    };
+    let d_tasks = Tasks::new(tasks_emit, model);
+    Box::into_raw(Box::new(d_tasks))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tasks_free(ptr: *mut Tasks) {
+    Box::from_raw(ptr).emit().clear();
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tasks_row_count(ptr: *const Tasks) -> c_int {
+    (&*ptr).row_count() as c_int
+}
+#[no_mangle]
+pub unsafe extern "C" fn tasks_insert_rows(ptr: *mut Tasks, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).insert_rows(row as usize, count as usize)
+}
+#[no_mangle]
+pub unsafe extern "C" fn tasks_remove_rows(ptr: *mut Tasks, row: c_int, count: c_int) -> bool {
+    (&mut *ptr).remove_rows(row as usize, count as usize)
+}
+#[no_mangle]
+pub unsafe extern "C" fn tasks_can_fetch_more(ptr: *const Tasks) -> bool {
+    (&*ptr).can_fetch_more()
+}
+#[no_mangle]
+pub unsafe extern "C" fn tasks_fetch_more(ptr: *mut Tasks) {
+    (&mut *ptr).fetch_more()
+}
+#[no_mangle]
+pub unsafe extern "C" fn tasks_sort(
+    ptr: *mut Tasks,
+    column: u8,
+    order: SortOrder,
+) {
+    (&mut *ptr).sort(column, order)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tasks_data_completed(ptr: *const Tasks, row: c_int) -> bool {
+    (&*ptr).completed(row as usize).into()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tasks_set_data_completed(
+    ptr: *mut Tasks, row: c_int,
+    v: bool,
+) -> bool {
+    (&mut *ptr).set_completed(row as usize, v)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tasks_data_title(
+    ptr: *const Tasks, row: c_int,
+    d: *mut c_void,
+    set: fn(*mut c_void, QString),
+) {
+    let data = (&*ptr).title(row as usize);
+    set(d, (data).into());
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn tasks_set_data_title(
+    ptr: *mut Tasks, row: c_int,
+    v: QStringIn,
+) -> bool {
+    (&mut *ptr).set_title(row as usize, v.convert())
+}
+
+pub struct TodoQObject {}
+
+#[derive(Clone)]
+pub struct TodoEmitter {
+    qobject: Arc<Mutex<*const TodoQObject>>,
+    val_changed: fn(*const TodoQObject),
+}
+
+unsafe impl Send for TodoEmitter {}
+
+impl TodoEmitter {
+    fn clear(&self) {
+        *self.qobject.lock().unwrap() = null();
+    }
+    pub fn val_changed(&self) {
+        let ptr = *self.qobject.lock().unwrap();
+        if !ptr.is_null() {
+            (self.val_changed)(ptr);
+        }
+    }
+}
+
+pub trait TodoTrait {
+    fn new(emit: TodoEmitter,
+        tasks: Tasks) -> Self;
+    fn emit(&self) -> &TodoEmitter;
+    fn tasks(&self) -> &Tasks;
+    fn tasks_mut(&mut self) -> &mut Tasks;
+    fn val(&self) -> &str;
+    fn set_val(&mut self, value: String);
+}
+
+#[no_mangle]
 pub extern "C" fn todo_new(
     todo: *mut TodoQObject,
-    todo_new_data_ready: fn(*const TodoQObject),
-    todo_data_changed: fn(*const TodoQObject, usize, usize),
-    todo_begin_reset_model: fn(*const TodoQObject),
-    todo_end_reset_model: fn(*const TodoQObject),
-    todo_begin_insert_rows: fn(*const TodoQObject, usize, usize),
-    todo_end_insert_rows: fn(*const TodoQObject),
-    todo_begin_remove_rows: fn(*const TodoQObject, usize, usize),
-    todo_end_remove_rows: fn(*const TodoQObject),
+    tasks: *mut TasksQObject,
+    tasks_new_data_ready: fn(*const TasksQObject),
+    tasks_data_changed: fn(*const TasksQObject, usize, usize),
+    tasks_begin_reset_model: fn(*const TasksQObject),
+    tasks_end_reset_model: fn(*const TasksQObject),
+    tasks_begin_insert_rows: fn(*const TasksQObject, usize, usize),
+    tasks_end_insert_rows: fn(*const TasksQObject),
+    tasks_begin_remove_rows: fn(*const TasksQObject, usize, usize),
+    tasks_end_remove_rows: fn(*const TasksQObject),
+    val_changed: fn(*const TodoQObject),
 ) -> *mut Todo {
+    let tasks_emit = TasksEmitter {
+        qobject: Arc::new(Mutex::new(tasks)),
+        new_data_ready: tasks_new_data_ready,
+    };
+    let model = TasksList {
+        qobject: tasks,
+        data_changed: tasks_data_changed,
+        begin_reset_model: tasks_begin_reset_model,
+        end_reset_model: tasks_end_reset_model,
+        begin_insert_rows: tasks_begin_insert_rows,
+        end_insert_rows: tasks_end_insert_rows,
+        begin_remove_rows: tasks_begin_remove_rows,
+        end_remove_rows: tasks_end_remove_rows,
+    };
+    let d_tasks = Tasks::new(tasks_emit, model);
     let todo_emit = TodoEmitter {
         qobject: Arc::new(Mutex::new(todo)),
-        new_data_ready: todo_new_data_ready,
+        val_changed: val_changed,
     };
-    let model = TodoList {
-        qobject: todo,
-        data_changed: todo_data_changed,
-        begin_reset_model: todo_begin_reset_model,
-        end_reset_model: todo_end_reset_model,
-        begin_insert_rows: todo_begin_insert_rows,
-        end_insert_rows: todo_end_insert_rows,
-        begin_remove_rows: todo_begin_remove_rows,
-        end_remove_rows: todo_end_remove_rows,
-    };
-    let d_todo = Todo::new(todo_emit, model);
+    let d_todo = Todo::new(todo_emit,
+        d_tasks);
     Box::into_raw(Box::new(d_todo))
 }
 
@@ -192,40 +331,21 @@ pub unsafe extern "C" fn todo_free(ptr: *mut Todo) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn todo_row_count(ptr: *const Todo) -> c_int {
-    (&*ptr).row_count() as c_int
-}
-#[no_mangle]
-pub unsafe extern "C" fn todo_can_fetch_more(ptr: *const Todo) -> bool {
-    (&*ptr).can_fetch_more()
-}
-#[no_mangle]
-pub unsafe extern "C" fn todo_fetch_more(ptr: *mut Todo) {
-    (&mut *ptr).fetch_more()
-}
-#[no_mangle]
-pub unsafe extern "C" fn todo_sort(
-    ptr: *mut Todo,
-    column: u8,
-    order: SortOrder,
-) {
-    (&mut *ptr).sort(column, order)
+pub unsafe extern "C" fn todo_tasks_get(ptr: *mut Todo) -> *mut Tasks {
+    (&mut *ptr).tasks_mut()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn todo_data_title(
-    ptr: *const Todo, row: c_int,
-    d: *mut c_void,
+pub unsafe extern "C" fn todo_val_get(
+    ptr: *const Todo,
+    p: *mut c_void,
     set: fn(*mut c_void, QString),
 ) {
-    let data = (&*ptr).title(row as usize);
-    set(d, (data).into());
+    let data = (&*ptr).val();
+    set(p, data.into());
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn todo_set_data_title(
-    ptr: *mut Todo, row: c_int,
-    v: QStringIn,
-) -> bool {
-    (&mut *ptr).set_title(row as usize, v.convert())
+pub unsafe extern "C" fn todo_val_set(ptr: *mut Todo, v: QStringIn) {
+    (&mut *ptr).set_val(v.convert());
 }

@@ -7,12 +7,28 @@
     },
     "objects": {
         "Todo": {
+            "type": "Object",
+            "properties": {
+                "tasks": {
+                    "type": "Tasks"
+                },
+                "val": {
+                    "type": "QString",
+                    "write": true
+                }
+            }
+        },
+        "Tasks": {
             "type": "List",
             "itemProperties": {
                 "title": {
                     "type": "QString",
                     "write": true,
                     "roles": [ [ "display", "edit" ] ]
+                },
+                "completed": {
+                    "type": "bool",
+                    "write": true
                 }
             }
         }

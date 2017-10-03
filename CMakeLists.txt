@@ -55,7 +55,7 @@ add_custom_command(
   OUTPUT "${RUST_LIB}"
   COMMAND ${Cargo_EXECUTABLE} build ${RUST_BUILD_FLAG}
   DEPENDS rust/src/lib.rs
-          rust/src/implementation.rs
+          rust/src/implementation/*
           rust/src/interface.rs
   WORKING_DIRECTORY "${RUST_DIR}"
 )

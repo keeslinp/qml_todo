@@ -1,1 +1,0 @@
-/home/pearce/programming/rust/qml_todo/rust/target/release/librust.a: /home/pearce/programming/rust/qml_todo/rust/src/implementation.rs /home/pearce/programming/rust/qml_todo/rust/src/interface.rs /home/pearce/programming/rust/qml_todo/rust/src/lib.rs

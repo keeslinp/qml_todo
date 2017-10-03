@@ -5,20 +5,22 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
+class Tasks;
 class Todo;
 
-class Todo : public QAbstractItemModel
+class Tasks : public QAbstractItemModel
 {
     Q_OBJECT
+    friend class Todo;
 public:
     class Private;
 private:
     Private * m_d;
     bool m_ownsPrivate;
-    explicit Todo(bool owned, QObject *parent);
+    explicit Tasks(bool owned, QObject *parent);
 public:
-    explicit Todo(QObject *parent = nullptr);
-    ~Todo();
+    explicit Tasks(QObject *parent = nullptr);
+    ~Tasks();
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -33,7 +35,11 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole) override;
+    Q_INVOKABLE bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    Q_INVOKABLE QVariant completed(int row) const;
+    Q_INVOKABLE bool setCompleted(int row, const QVariant& value);
     Q_INVOKABLE QVariant title(int row) const;
     Q_INVOKABLE bool setTitle(int row, const QVariant& value);
 
@@ -44,5 +50,29 @@ private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
 signals:
+};
+
+class Todo : public QObject
+{
+    Q_OBJECT
+public:
+    class Private;
+private:
+    Tasks* const m_tasks;
+    Private * m_d;
+    bool m_ownsPrivate;
+    Q_PROPERTY(Tasks* tasks READ tasks NOTIFY tasksChanged FINAL)
+    Q_PROPERTY(QString val READ val WRITE setVal NOTIFY valChanged FINAL)
+    explicit Todo(bool owned, QObject *parent);
+public:
+    explicit Todo(QObject *parent = nullptr);
+    ~Todo();
+    const Tasks* tasks() const;
+    Tasks* tasks();
+    QString val() const;
+    void setVal(const QString& v);
+signals:
+    void tasksChanged();
+    void valChanged();
 };
 #endif // BINDINGS_H

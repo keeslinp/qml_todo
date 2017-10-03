@@ -1,1 +1,0 @@
-{"rustc":88096689522913738,"features":"[]","target":13540674939679589728,"profile":14119667493710126711,"deps":[["libc v0.2.31",914026893570329416]],"local":[{"MtimeBased":[[1506625685,714416726],"/home/pearce/programming/rust/rust-qt-binding-generator/templates/qt_quick/rust/target/debug/.fingerprint/rust-439778bb66d0da33/dep-lib-rust-439778bb66d0da33"]}],"rustflags":[]}

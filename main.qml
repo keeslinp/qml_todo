@@ -8,9 +8,5 @@ Window {
     title: qsTr("Hello World")
 
     MainForm {
-        anchors.fill: parent
-        mouseArea.onClicked: {
-		rust.message = 'taco sauce';
-        }
     }
 }

@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    qmlRegisterType<Todo>("RustCode", 1, 0, "Todo");
+    qmlRegisterType<Tasks>("RustCode", 1, 0, "Tasks");
 
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

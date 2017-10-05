@@ -37,10 +37,6 @@ namespace {
         int row;
         quintptr id;
     };
-    inline void todoValChanged(Todo* o)
-    {
-        emit o->valChanged();
-    }
 }
 extern "C" {
     bool tasks_data_completed(const Tasks::Private*, int);
@@ -222,22 +218,6 @@ extern "C" {
     void tasks_free(Tasks::Private*);
 };
 
-extern "C" {
-    Todo::Private* todo_new(Todo*, Tasks*,
-        void (*)(const Tasks*),
-        void (*)(Tasks*, quintptr, quintptr),
-        void (*)(Tasks*),
-        void (*)(Tasks*),
-        void (*)(Tasks*, int, int),
-        void (*)(Tasks*),
-        void (*)(Tasks*, int, int),
-        void (*)(Tasks*), void (*)(Todo*));
-    void todo_free(Todo::Private*);
-    Tasks::Private* todo_tasks_get(const Todo::Private*);
-    void todo_val_get(const Todo::Private*, QString*, qstring_set);
-    void todo_val_set(Todo::Private*, qstring_t);
-};
-
 Tasks::Tasks(bool /*owned*/, QObject *parent):
     QAbstractItemModel(parent),
     m_d(0),
@@ -290,73 +270,4 @@ Tasks::~Tasks() {
 }
 void Tasks::initHeaderData() {
     m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("title"));
-}
-Todo::Todo(bool /*owned*/, QObject *parent):
-    QObject(parent),
-    m_tasks(new Tasks(false, this)),
-    m_d(0),
-    m_ownsPrivate(false)
-{
-}
-
-Todo::Todo(QObject *parent):
-    QObject(parent),
-    m_tasks(new Tasks(false, this)),
-    m_d(todo_new(this, m_tasks,
-        [](const Tasks* o) {
-            emit o->newDataReady(QModelIndex());
-        },
-        [](Tasks* o, quintptr first, quintptr last) {
-            o->dataChanged(o->createIndex(first, 0, first),
-                       o->createIndex(last, 0, last));
-        },
-        [](Tasks* o) {
-            o->beginResetModel();
-        },
-        [](Tasks* o) {
-            o->endResetModel();
-        },
-        [](Tasks* o, int first, int last) {
-            o->beginInsertRows(QModelIndex(), first, last);
-        },
-        [](Tasks* o) {
-            o->endInsertRows();
-        },
-        [](Tasks* o, int first, int last) {
-            o->beginRemoveRows(QModelIndex(), first, last);
-        },
-        [](Tasks* o) {
-            o->endRemoveRows();
-        }
-,
-        todoValChanged)),
-    m_ownsPrivate(true)
-{
-    m_tasks->m_d = todo_tasks_get(m_d);
-    connect(this->m_tasks, &Tasks::newDataReady, this->m_tasks, [this](const QModelIndex& i) {
-        this->m_tasks->fetchMore(i);
-    }, Qt::QueuedConnection);
-}
-
-Todo::~Todo() {
-    if (m_ownsPrivate) {
-        todo_free(m_d);
-    }
-}
-const Tasks* Todo::tasks() const
-{
-    return m_tasks;
-}
-Tasks* Todo::tasks()
-{
-    return m_tasks;
-}
-QString Todo::val() const
-{
-    QString v;
-    todo_val_get(m_d, &v, set_qstring);
-    return v;
-}
-void Todo::setVal(const QString& v) {
-    todo_val_set(m_d, v);
 }

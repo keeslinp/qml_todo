@@ -6,12 +6,10 @@
 #include <QAbstractItemModel>
 
 class Tasks;
-class Todo;
 
 class Tasks : public QAbstractItemModel
 {
     Q_OBJECT
-    friend class Todo;
 public:
     class Private;
 private:
@@ -50,29 +48,5 @@ private:
     QHash<QPair<int,Qt::ItemDataRole>, QVariant> m_headerData;
     void initHeaderData();
 signals:
-};
-
-class Todo : public QObject
-{
-    Q_OBJECT
-public:
-    class Private;
-private:
-    Tasks* const m_tasks;
-    Private * m_d;
-    bool m_ownsPrivate;
-    Q_PROPERTY(Tasks* tasks READ tasks NOTIFY tasksChanged FINAL)
-    Q_PROPERTY(QString val READ val WRITE setVal NOTIFY valChanged FINAL)
-    explicit Todo(bool owned, QObject *parent);
-public:
-    explicit Todo(QObject *parent = nullptr);
-    ~Todo();
-    const Tasks* tasks() const;
-    Tasks* tasks();
-    QString val() const;
-    void setVal(const QString& v);
-signals:
-    void tasksChanged();
-    void valChanged();
 };
 #endif // BINDINGS_H

@@ -6,24 +6,8 @@ import RustCode 1.0
 ColumnLayout {
 
 
-    // MouseArea {
-        // id: mouseArea
-        // anchors.fill: parent
-    // }
-    // anchors.horizontalCenter: parent.horizontalCenter
-
     anchors.fill: parent
-    // // TextEdit {
-        // // id: textEdit
-        // // text: rust.message
-        // // Rectangle {
-            // // anchors.fill: parent
-            // // anchors.margins: -10
-            // // color: "transparent"
-            // // border.width: 1
-        // // }
-    // // }
-    Todo {
+    Tasks {
         id: rust
     }
     ListView {
@@ -34,7 +18,7 @@ ColumnLayout {
         anchors.right: parent.horizontalCenter
         anchors.left: parent.left
         anchors.bottom: parent.verticalCenter
-        model: rust.tasks
+        model: rust
         delegate: RowLayout {
             anchors.right: parent.horizontalCenter
             Text {
@@ -51,24 +35,24 @@ ColumnLayout {
         anchors.top: parent.verticalCenter
         anchors.left: parent.left
         TextEdit {
-            text: rust.val
+            text: "New Task"
             id: textEdit
         }
         Button {
             text: 'Submit'
             onClicked: {
-                var count = rust.tasks.rowCount();
-                rust.tasks.insertRows(count, 1);
-                rust.tasks.setTitle(count, textEdit.text);
+                var count = rust.rowCount();
+                rust.insertRows(count, 1);
+                rust.setTitle(count, textEdit.text);
             }
         }
         Button {
             text: 'Sweep Completed'
             onClicked: {
-                var count = rust.tasks.rowCount();
+                var count = rust.rowCount();
                 for(var i = 0; i < count; i++) {
-                    if (rust.tasks.completed(i)) {
-                        rust.tasks.removeRows(i, 1);
+                    if (rust.completed(i)) {
+                        rust.removeRows(i, 1);
                         i--;
                         count--;
                     }

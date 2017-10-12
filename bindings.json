@@ -18,6 +18,37 @@
                     "type": "bool",
                     "write": true
                 }
+            },
+            "functions": {
+                "sweep": {
+                    "arguments":[],
+                    "return": "bool",
+                    "mut": true
+                },
+                "rust_string": {
+                    "arguments": [
+                        {
+                            "name": "name",
+                            "type": "QString"
+                        },
+                        {
+                            "name": "count",
+                            "type": "quint8"
+                        }
+                    ],
+                    "return": "QString",
+                    "mut": false
+                },
+                "rust_square": {
+                    "arguments": [
+                        {
+                            "name": "number",
+                            "type": "quint8"
+                        }
+                    ],
+                    "return": "quint8",
+                    "mut": false
+                }
             }
         }
     }

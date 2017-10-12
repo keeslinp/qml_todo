@@ -72,5 +72,16 @@ impl TasksTrait for Tasks {
         self.model.end_remove_rows();
         true
     }
-}
 
+    fn sweep(&mut self) -> bool {
+        let tasks_to_remove: Vec<usize> = self.list.iter().enumerate().filter_map(
+            |(index, task)|
+                if task.completed {  Some(index) } else {  None }
+            ).collect();
+
+        for (count, index) in tasks_to_remove.iter().enumerate() {
+            self.remove_rows(index - count, 1);
+        }
+        true
+    }
+}

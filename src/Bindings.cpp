@@ -216,6 +216,9 @@ extern "C" {
         void (*)(Tasks*, int, int),
         void (*)(Tasks*));
     void tasks_free(Tasks::Private*);
+    quint8 tasks_rust_square(const Tasks::Private*, quint8);
+    qstring_t tasks_rust_string(const Tasks::Private*, qstring_t, quint8, QString*, qstring_set);
+    bool tasks_sweep(Tasks::Private*);
 };
 
 Tasks::Tasks(bool /*owned*/, QObject *parent):
@@ -270,4 +273,18 @@ Tasks::~Tasks() {
 }
 void Tasks::initHeaderData() {
     m_headerData.insert(qMakePair(0, Qt::DisplayRole), QVariant("title"));
+}
+quint8 Tasks::rust_square(quint8 number) const
+{
+    return tasks_rust_square(m_d, number);
+}
+QString Tasks::rust_string(const QString& name, quint8 count) const
+{
+    QString s;
+    tasks_rust_string(m_d, name, count, &s, set_qstring);
+    return s;
+}
+bool Tasks::sweep() 
+{
+    return tasks_sweep(m_d);
 }

@@ -49,14 +49,7 @@ ColumnLayout {
         Button {
             text: 'Sweep Completed'
             onClicked: {
-                var count = rust.rowCount();
-                for(var i = 0; i < count; i++) {
-                    if (rust.completed(i)) {
-                        rust.removeRows(i, 1);
-                        i--;
-                        count--;
-                    }
-                }
+                rust.sweep();
             }
         }
     }

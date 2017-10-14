@@ -146,8 +146,6 @@ impl TasksList {
 pub trait TasksTrait {
     fn new(emit: TasksEmitter, model: TasksList) -> Self;
     fn emit(&self) -> &TasksEmitter;
-    fn rust_square(&self, number: u8) -> u8;
-    fn rust_string(&self, name: String, count: u8) -> String;
     fn sweep(&mut self) -> bool;
     fn row_count(&self) -> usize;
     fn insert_rows(&mut self, row: usize, count: usize) -> bool { false }
@@ -196,17 +194,6 @@ pub extern "C" fn tasks_new(
 #[no_mangle]
 pub unsafe extern "C" fn tasks_free(ptr: *mut Tasks) {
     Box::from_raw(ptr).emit().clear();
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn tasks_rust_square(ptr: *const Tasks, number: u8) -> u8 {
-    (&*ptr).rust_square(number)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn tasks_rust_string(ptr: *const Tasks, name: QStringIn, count: u8, d: *mut c_void, set: fn(*mut c_void, QString)) {
-    let data = (&*ptr).rust_string(name.convert(), count);
-    set(d, (&data).into());
 }
 
 #[no_mangle]

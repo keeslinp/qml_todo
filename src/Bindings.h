@@ -19,7 +19,7 @@ private:
 public:
     explicit Tasks(QObject *parent = nullptr);
     ~Tasks();
-    Q_INVOKABLE quint8 rust_square(quint8 number) const;    Q_INVOKABLE QString rust_string(const QString& name, quint8 count) const;    Q_INVOKABLE bool sweep();
+    Q_INVOKABLE bool sweep();
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;

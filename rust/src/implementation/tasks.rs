@@ -33,7 +33,7 @@ impl TasksTrait for Tasks {
         Tasks {
             emit: emit,
             model: model,
-            list: vec!["test", "test2"].iter().map(|&val| TasksItem::new(String::from(val))).collect(),
+            list: (1..20).map(|num| format!("task #{}", num)).map(|val| TasksItem::new(val)).collect(),
         }
     }
     fn emit(&self) -> &TasksEmitter {

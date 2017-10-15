@@ -5,5 +5,7 @@
         <file>TaskList.ui.qml</file>
         <file>BottomBar.ui.qml</file>
         <file>TaskItem.ui.qml</file>
+        <file>TaskEdit.ui.qml</file>
+        <file>TaskView.ui.qml</file>
     </qresource>
 </RCC>

@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/qml/">
+        <file>main.qml</file>
+        <file>MainForm.ui.qml</file>
+        <file>TaskList.ui.qml</file>
+        <file>BottomBar.ui.qml</file>
+        <file>TaskItem.ui.qml</file>
+    </qresource>
+</RCC>

@@ -63,7 +63,7 @@ add_custom_target(rust_target DEPENDS "${RUST_LIB}")
 
 list(APPEND Libs "${RUST_LIB}")
 list(APPEND Libs Qt5::Core Qt5::Quick Threads::Threads ${CMAKE_DL_LIBS})
-set(SRCS src/main.cpp src/Bindings.cpp "qml.qrc")
+set(SRCS src/main.cpp src/Bindings.cpp "qml/qml.qrc")
 add_executable(MyExe ${SRCS})
 add_dependencies(MyExe rust_target)
 target_link_libraries(MyExe ${Libs})
